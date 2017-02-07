@@ -9,5 +9,4 @@ import android.app.Application;
 public class QuoteOfTheDayConstants {
 
         public static String BASE_URL = "http://api.theysaidso.com";
-
 }

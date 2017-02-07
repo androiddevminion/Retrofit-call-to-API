@@ -18,6 +18,8 @@ import retrofit2.Converter;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import yesh.com.retrofit.api.RestClient;
+import yesh.com.retrofit.models.ResponseData;
 import yesh.com.retrofit.pojo.QuoteOfTheDayErrorResponse;
 import yesh.com.retrofit.pojo.QuoteOfTheDayResponse;
 import yesh.com.retrofit.interceptor.LoggingInterceptor;
@@ -36,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         textViewQuoteOfTheDay = (TextView) findViewById(R.id.text_view_quote);
         buttonRetry = (Button) findViewById(R.id.button_retry);
         buttonRetry.setOnClickListener(new View.OnClickListener() {
@@ -46,16 +47,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new LoggingInterceptor()).build();
-        retrofit = new Retrofit.Builder()
-                .baseUrl(QuoteOfTheDayConstants.BASE_URL)
-                .addConverterFactory(JacksonConverterFactory.create())
-                .client(client)
-                .build();
-        service = retrofit.create(QuoteOfTheDayRestService.class);
-        getQuoteOfTheDay();
+        //call Mocked response
+        if (BuildConfig.BUILD_TYPE.equalsIgnoreCase("mocked")) {
+            RestClient.getClient(this).login("username", "password").enqueue(new Callback<ResponseData>() {
+                @Override
+                public void onResponse(Call<ResponseData> call, Response<ResponseData> response) {
+                    Log.d("sample response yesh", response.body().getData().toString());
+                }
 
+                @Override
+                public void onFailure(Call<ResponseData> call, Throwable t) {
+
+                }
+            });
+        } else if (BuildConfig.BUILD_TYPE.equalsIgnoreCase("debug")) {
+
+            //Call Actual service
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(new LoggingInterceptor()).build();
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(QuoteOfTheDayConstants.BASE_URL)
+                    .addConverterFactory(JacksonConverterFactory.create())
+                    .client(client)
+                    .build();
+            service = retrofit.create(QuoteOfTheDayRestService.class);
+            getQuoteOfTheDay();
+
+        }
     }
 
 
